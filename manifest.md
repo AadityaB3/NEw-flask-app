@@ -107,9 +107,9 @@ kind load docker-image product-service:latest
 kind load docker-image order-service:latest
 ```
 
-For a remote cluster, push tagged images to a registry the nodes can access, then update the `image` values in both application Deployments to those registry paths. Do not expect a remote cluster to see images that exist only on your laptop.
+For EKS, a Docker image on your computer is not automatically available to cluster nodes. These Deployments use `imagePullPolicy: Never`, so before applying them you must transfer/import each built image into the container runtime on **every EKS worker node**. Pods will fail with `ErrImageNeverPull` if a scheduled node does not have the image. Newly added or replaced nodes will also need the images, so this approach is fragile for scaling and node replacement; a container registry is the recommended option for EKS.
 
-The Product Deployment sets `imagePullPolicy: IfNotPresent`; the Order Deployment does not. Kubernetes defaults the pull policy to `Always` for the `:latest` tag, so a local cluster may try to pull the Order image from a registry. For local-image testing, add `imagePullPolicy: IfNotPresent` to `order-service/manifests/app_deployment.yml`, or use a published image accessible to the cluster.
+For registry-based deployment, push tagged images to a registry the nodes can access, update the `image` values in both application Deployments to those registry paths, and change `imagePullPolicy` from `Never` to `IfNotPresent` (or `Always`). Do not expect a remote cluster to see images that exist only on your laptop.
 
 ## Apply in dependency order
 
